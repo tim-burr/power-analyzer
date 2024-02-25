@@ -1,0 +1,19 @@
+UrlBox#url[textColor='valid'] {
+    color: black;
+}
+
+UrlBox#url[textColor='invalid'] {
+    color: #E23636;
+}
+
+QWidget#header {
+    font-family: 'Roboto';
+    font-size: 18px;
+    font-weight: bold;
+}
+
+StatIndicator {
+    border: none;
+    background-color: lightgray;
+    qproperty-alignment: AlignRight;
+}

@@ -1,0 +1,30 @@
+Move to personal GitHub.
+Add these remaining ToDos to GitHub.
+
+Fork to Bloomy GitHub.
+Add existing "ABS Cell Analyzer.spec".
+
+[med] Recalculate stats on graph object mouse-release event.
+    data_vm can have signal emitted which analyzer_vm subscribes to;
+    signal should include graph's visible data in a list;
+    analyzer_vm then initiates stats recalculation.
+
+[small] Allow file renaming to save in the list view.
+
+[small] Handle invalid file permission in tree view.
+[small] Handle exceptions for missing config and data files, as well as "fake" data files (with just the header).
+
+[small] Add file list footer to display # of compatible files found in current dir.
+
+[med] Apply styling to list view, such as what QFileSystemModel uses.
+    Can just be a simple document icon.
+
+[big] Add TOML config capability.
+    Window title, data types (view headers), data units (stat indicators)
+
+[big] Add logging.
+
+[med] Saved images should be same size regardless of window size.
+
+[small] After eventually being able to upgrade to Python >=3.12:
+    Add @override decorators.
