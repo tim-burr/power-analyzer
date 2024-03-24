@@ -21,25 +21,24 @@ class AnalyzerViewModel(QObject):
     def __init__(self, button: QPushButton, voltage: QWidget, current: QWidget):
         super().__init__()
         self._button = button
-        self._voltage_p: DataViewModel = voltage.viewmodel
-        self._current_p: DataViewModel = current.viewmodel
+        self._voltage_vm: DataViewModel = voltage.viewmodel
+        self._current_vm: DataViewModel = current.viewmodel
         self._data_loader = DataLoader()
         self._dir: Path = ''
         self._init_views()
 
         # Set signal/slot connections
         self._button.clicked.connect(self._save_img)
-        self.voltageChanged.connect(self._voltage_p.update_views)
-        self.currentChanged.connect(self._current_p.update_views)
-
+        self.voltageChanged.connect(self._voltage_vm.update_views)
+        self.currentChanged.connect(self._current_vm.update_views)
 
     def _init_views(self):
         default_data = [0,1]
         voltage_stats = StatsModel(default_data, "V").stats
         current_stats = StatsModel(default_data, "A").stats
 
-        self._voltage_p.init_views(default_data, voltage_stats)
-        self._current_p.init_views(default_data, current_stats)
+        self._voltage_vm.init_views(default_data, voltage_stats)
+        self._current_vm.init_views(default_data, current_stats)
 
 
     ### Slots ###
