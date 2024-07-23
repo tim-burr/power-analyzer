@@ -1,6 +1,7 @@
 # Imports
+from math import floor, ceil
 # Qt
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QWidget
 # Graphing toolkit
 from pyqtgraph import PlotWidget
@@ -9,11 +10,19 @@ from pyqtgraph import PlotWidget
 class DataViewModel(QObject):
     """Handles analysis view updates."""
 
+    ### Signals ###
+    dataSlice = Signal(list)  # Emits slice of plot data for stats calculation
+
+
     ### Constructors ###
     def __init__(self, graph: PlotWidget, stats: QWidget):
         super().__init__()
         self._graph = graph
         self._stats = stats
+        self.data = []  # Buffer plot data once to avoid retrievals from view
+
+        # Set signal/slot connections
+        self._graph.sigRangeChanged.connect(self.refresh_stats)
 
     def init_views(self, data: list, stats: list):
         """Initializes a graph view and all associated statistic indicators.
@@ -70,6 +79,22 @@ class DataViewModel(QObject):
             indicators[index].clear()
             indicators[index].setText(f"{value:.3e}")  # Scientific notation
 
+    ### Signals ###
+    def refresh_stats(self):
+        """Emits signal if stats are out-of-date for a graph."""
+
+        # Calculate uncoerced x-axis bounds for visible plot area
+        left_index_raw = int(floor(self._graph.viewRect().left()))
+        right_index_raw = int(ceil(self._graph.viewRect().right()))
+
+        # Coerce plot indices to actual data set
+        left_index = max(0, left_index_raw)
+        right_index = min(right_index_raw, len(self.data)-1)
+
+        # Retrieve and emit data slice
+        slice = self.data[left_index:right_index]
+        self.dataSlice.emit(slice)
+
 
     ### Slots ###
     def update_views(self, values: dict):
@@ -79,8 +104,8 @@ class DataViewModel(QObject):
             values: A dictionary containing all raw values and stats for a data set.
         """
 
-        data = values.get('data')
+        self.data = values.get('data')
         stats = values.get('stats')
 
-        self._update_graph(data)
+        self._update_graph(self.data)
         self._update_stats(stats)
