@@ -43,12 +43,12 @@ class DataViewModel(QObject):
         """Emits signal if stats are out-of-date based on plot range."""
 
         # Calculate uncoerced x-axis bounds for visible plot area
-        left_index_raw = int(floor(self._graph.viewRect().left()))
-        right_index_raw = int(ceil(self._graph.viewRect().right()))
+        left_index_raw = int(ceil(self._graph.viewRect().left()))
+        right_index_raw = int(floor(self._graph.viewRect().right()))
 
         # Coerce plot indices to actual data set
         left_index = max(0, left_index_raw)
-        right_index = min(right_index_raw, len(self.data)-1)
+        right_index = min(right_index_raw, len(self.data))
 
         # Retrieve and emit data slice
         slice = self.data[left_index:right_index]
