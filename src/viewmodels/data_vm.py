@@ -32,17 +32,58 @@ class DataViewModel(QObject):
             stats: A list of any number of statistic dictionaries.
         """
 
-        self._update_graph(data)
+        self.update_graph(data)
 
         for stat in stats:
             self._stats.add_stat(stat)
 
 
     ### Functions ###
-    def _update_graph(self, data: list):
+    def refresh_stats(self):
+        """Emits signal if stats are out-of-date based on plot range."""
+
+        # Calculate uncoerced x-axis bounds for visible plot area
+        left_index_raw = int(floor(self._graph.viewRect().left()))
+        right_index_raw = int(ceil(self._graph.viewRect().right()))
+
+        # Coerce plot indices to actual data set
+        left_index = max(0, left_index_raw)
+        right_index = min(right_index_raw, len(self.data)-1)
+
+        # Retrieve and emit data slice
+        slice = self.data[left_index:right_index]
+        self.dataSlice.emit(slice)
+
+
+    ### Slots ###
+    def update_stats(self, stats: list[dict]):
+        """Updates statistic views with new data.
+
+        Args:
+            stats: A list of statistical dictionaries.
+        """
+
+        indicators = self._stats.indicators
+
+        for stat in stats:
+            index = stat.get('name')
+            value = stat.get('value')
+
+            indicators[index].clear()
+            indicators[index].setText(f"{value:.3e}")  # Scientific notation
+
+    def update_graph(self, data: list):
+        """Updates graph view with new plot data.
+
+        Args:
+            data: A list of data points to be plotted.
+        """
+
         self._graph.getPlotItem().clearPlots()
         self._graph.getPlotItem().plot(y=data)
         self._graph.getPlotItem().autoRange()
+
+        self.data = data
 
         # Not used: Limit zoomed plot scales
         """
@@ -68,44 +109,3 @@ class DataViewModel(QObject):
         self._graph.getPlotItem().setXRange(min=xMin, max=xMax)
         self._graph.getPlotItem().setYRange(min=yMin, max=yMax)
         """
-
-    def _update_stats(self, stats: list[dict]):
-        indicators = self._stats.indicators
-
-        for stat in stats:
-            index = stat.get('name')
-            value = stat.get('value')
-
-            indicators[index].clear()
-            indicators[index].setText(f"{value:.3e}")  # Scientific notation
-
-    ### Signals ###
-    def refresh_stats(self):
-        """Emits signal if stats are out-of-date for a graph."""
-
-        # Calculate uncoerced x-axis bounds for visible plot area
-        left_index_raw = int(floor(self._graph.viewRect().left()))
-        right_index_raw = int(ceil(self._graph.viewRect().right()))
-
-        # Coerce plot indices to actual data set
-        left_index = max(0, left_index_raw)
-        right_index = min(right_index_raw, len(self.data)-1)
-
-        # Retrieve and emit data slice
-        slice = self.data[left_index:right_index]
-        self.dataSlice.emit(slice)
-
-
-    ### Slots ###
-    def update_views(self, values: dict):
-        """Updates graph and statistic views with received data.
-
-        Args:
-            values: A dictionary containing all raw values and stats for a data set.
-        """
-
-        self.data = values.get('data')
-        stats = values.get('stats')
-
-        self._update_graph(self.data)
-        self._update_stats(stats)

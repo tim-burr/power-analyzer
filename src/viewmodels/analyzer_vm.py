@@ -13,8 +13,10 @@ class AnalyzerViewModel(QObject):
     """Dispatches model values to multiple data view-model instances."""
 
     ### Signals ###
-    voltageChanged = Signal(dict)  # Emits new voltage data and stats
-    currentChanged = Signal(dict)  # Emits new current data and stats
+    voltagePlotChanged = Signal(list)  # Emits new voltage data
+    voltageStatsChanged = Signal(list)  # Emits new voltage stats
+    currentPlotChanged = Signal(list)  # Emits new current data
+    currentStatsChanged = Signal(list)  # Emits new current stats
 
 
     ### Constructors ###
@@ -29,8 +31,12 @@ class AnalyzerViewModel(QObject):
 
         # Set signal/slot connections
         self._button.clicked.connect(self._save_img)
-        self.voltageChanged.connect(self._voltage_vm.update_views)
-        self.currentChanged.connect(self._current_vm.update_views)
+        self.voltagePlotChanged.connect(self._voltage_vm.update_graph)
+        self.voltageStatsChanged.connect(self._voltage_vm.update_stats)
+        self.currentPlotChanged.connect(self._current_vm.update_graph)
+        self.currentStatsChanged.connect(self._current_vm.update_stats)
+        self._voltage_vm.dataSlice.connect(self.update_voltage_stats)
+        self._current_vm.dataSlice.connect(self.update_current_stats)
 
     def _init_views(self):
         default_data = [0,1]
@@ -41,7 +47,33 @@ class AnalyzerViewModel(QObject):
         self._current_vm.init_views(default_data, current_stats)
 
 
+    ### Functions ###
+    def new_voltage_plot(self, data: list):
+        self.voltagePlotChanged.emit(data)
+
+    def new_voltage_stats(self, stats: list[dict]):
+        self.voltageStatsChanged.emit(stats)
+
+    def new_current_plot(self, data: list):
+        self.currentPlotChanged.emit(data)
+
+    def new_current_stats(self, stats: list[dict]):
+        self.currentStatsChanged.emit(stats)
+
+
     ### Slots ###
+    def update_voltage_stats(self, data: list):
+        """Updates only the voltage view statistic indicators."""
+
+        stats = StatsModel(data, "V").stats
+        self.new_voltage_stats(stats)
+
+    def update_current_stats(self, data: list):
+        """Updates only the current view statistic indicators"""
+
+        stats = StatsModel(data, "A").stats
+        self.new_current_stats(stats)
+
     def update_views(self, fpath: Path):
         """Emits new data and stats upon a successful file load.
 
@@ -64,10 +96,10 @@ class AnalyzerViewModel(QObject):
         current_stats = StatsModel(current_data, "A").stats
 
         # Notify external module that new data and stats are available
-        self.voltageChanged.emit({'data': voltage_data,
-                                  'stats': voltage_stats})
-        self.currentChanged.emit({'data': current_data,
-                                  'stats': current_stats})
+        self.new_voltage_plot(voltage_data)
+        self.new_voltage_stats(voltage_stats)
+        self.new_current_plot(current_data)
+        self.new_current_stats(current_stats)
 
     def _save_img(self):
         dialog = ReportDialog(parent=self._button.parent())
