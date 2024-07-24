@@ -48,10 +48,14 @@ class DataViewModel(QObject):
 
         # Coerce plot indices to actual data set
         left_index = max(0, left_index_raw)
-        right_index = min(right_index_raw, len(self.data))
+        right_index = min(right_index_raw, len(self.data)-1)
+
+        #TODO: DELETE
+        print(left_index_raw, left_index)
+        print(right_index_raw, right_index)
 
         # Retrieve and emit data slice
-        slice = self.data[left_index:right_index]
+        slice = self.data[left_index:right_index+1]
         self.dataSlice.emit(slice)
 
 
